@@ -18,14 +18,16 @@ class MenuScreen(Screen):
                           font_size='40sp', size_hint=(1, 0.4))
         layout.add_widget(title_lbl)
         
-        game_btn = Button(text='Game', font_size='20sp')
+        game_btn = Button(text='Game', font_size='20sp', size_hint=(1, 0.2))
         game_btn.bind(on_press=self.go_game)
         layout.add_widget(game_btn)
 
-        settings_btn = Button(text='settings', font_size='20sp')
+        settings_btn = Button(text='Settings', font_size='20sp', size_hint=(1, 0.2))
+        settings_btn.bind(on_press=self.go_settings)
         layout.add_widget(settings_btn)
 
-        exit_btn = Button(text='exit', font_size='20sp')
+        exit_btn = Button(text='exit', font_size='20sp', size_hint=(1, 0.2))
+        exit_btn.bind(on_press=self.exit)
         layout.add_widget(exit_btn)
 
         self.add_widget(layout)
@@ -35,6 +37,9 @@ class MenuScreen(Screen):
 
     def go_settings(self, *args):
         self.manager.current = 'settings'
+
+    def exit(self, *args):
+        app.stop()
 
 
 class GameScreen(Screen):
@@ -47,10 +52,14 @@ class GameScreen(Screen):
                           font_size='40sp', size_hint=(1, 0.4))
         layout.add_widget(title_lbl)
 
-        exit_btn = Button(text='exit', font_size='20sp')
+        exit_btn = Button(text='Menu', font_size='20sp', size_hint=(1, 0.2))
+        exit_btn.bind(on_press=self.go_menu)
         layout.add_widget(exit_btn)
 
         self.add_widget(layout)
+    
+    def go_menu(self, *args):
+        self.manager.current = 'menu'
 
 class SettingsScreen(Screen):
     def __init__(self, **kwargs):
@@ -62,10 +71,14 @@ class SettingsScreen(Screen):
                           font_size='40sp', size_hint=(1, 0.4))
         layout.add_widget(title_lbl)
 
-        exit_btn = Button(text='exit', font_size='20sp')
+        exit_btn = Button(text='Menu', font_size='20sp', size_hint=(1, 0.2))
+        exit_btn.bind(on_press=self.go_menu)
         layout.add_widget(exit_btn)
 
         self.add_widget(layout)
+    
+    def go_menu(self, *args):
+        self.manager.current = 'menu'
 
 class ClickerApp(App):
     def build(self):
