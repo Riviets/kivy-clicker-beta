@@ -1,0 +1,77 @@
+#:import colormap kivy.utils.colormap
+
+#:set main_color '#F3AF12'
+
+<ButtonMenu@Button>:
+    font_size: '20sp'
+    size_hint: 1, 0.2
+    background_color: main_color
+
+<MenuScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '20dp'
+
+        Image:
+            source: 'assets/images/logo.jpg'
+            size_hint: 1, 0.4
+
+        Label:
+            text: 'Menu Screen'
+            font_size: '40sp'
+            size_hint: 1, 0.2
+
+        ButtonMenu:
+            text: 'GAME'
+            on_press: root.go_game()
+
+        ButtonMenu:
+            text: 'Settings'
+            on_press: root.go_settings()
+
+        ButtonMenu:
+            text: 'Exit'
+            on_press: root.exit()
+
+<GameScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '10dp'
+
+        Label:
+            text: 'Score: ' + str(root.score)
+            font_size: '30sp'
+            size_hint: 1, 0.2
+
+        Fish:
+            id: fish
+            size_hint: None, None
+            size: 200, 200
+            center: root.center
+
+        Label:
+            id: level_complete
+            text: 'Level Complete!'
+            font_size: '30sp'
+            size_hint: 1, 0.2
+            opacity: 0
+
+        ButtonMenu:
+            text: 'Menu'
+            on_press: root.go_menu()
+
+<SettingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '20dp'
+        spacing: '20dp'
+
+        Label:
+            text: 'Settings'
+            font_size: '40sp'
+
+        ButtonMenu:
+            text: 'Menu'
+            on_press: root.go_menu()
