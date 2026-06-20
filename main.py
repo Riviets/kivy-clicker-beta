@@ -1,36 +1,14 @@
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.image import Image
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.core.window import Window
+from kivy.uix.image import Image
 
-Window.size = (350, 650)
+from kivy import platform
+from kivy.properties import NumericProperty
+from kivy.clock import Clock
+
 
 class MenuScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        layout = BoxLayout(orientation='vertical')
-
-        title_lbl = Label(text = 'Main Menu', 
-                          font_size='40sp', size_hint=(1, 0.4))
-        layout.add_widget(title_lbl)
-        
-        game_btn = Button(text='Game', font_size='20sp', size_hint=(1, 0.2))
-        game_btn.bind(on_press=self.go_game)
-        layout.add_widget(game_btn)
-
-        settings_btn = Button(text='Settings', font_size='20sp', size_hint=(1, 0.2))
-        settings_btn.bind(on_press=self.go_settings)
-        layout.add_widget(settings_btn)
-
-        exit_btn = Button(text='exit', font_size='20sp', size_hint=(1, 0.2))
-        exit_btn.bind(on_press=self.exit)
-        layout.add_widget(exit_btn)
-
-        self.add_widget(layout)
 
     def go_game(self, *args):
         self.manager.current = 'game'
@@ -42,51 +20,93 @@ class MenuScreen(Screen):
         app.stop()
 
 
-class GameScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class SettingsScreen(Screen):
 
-        layout = BoxLayout(orientation='vertical')
-
-        title_lbl = Label(text = 'GAME', 
-                          font_size='40sp', size_hint=(1, 0.4))
-        layout.add_widget(title_lbl)
-
-        exit_btn = Button(text='Menu', font_size='20sp', size_hint=(1, 0.2))
-        exit_btn.bind(on_press=self.go_menu)
-        layout.add_widget(exit_btn)
-
-        self.add_widget(layout)
-    
     def go_menu(self, *args):
         self.manager.current = 'menu'
 
-class SettingsScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-        layout = BoxLayout(orientation='vertical')
+class Fish(Image):
+    fish_current = None
+    fish_index = 0
+    hp_current = None
 
-        title_lbl = Label(text = 'Settings', 
-                          font_size='40sp', size_hint=(1, 0.4))
-        layout.add_widget(title_lbl)
+    def new_fish(self, *args):
+        self.fish_current = app.LEVELS[app.LEVEL][self.fish_index]
+        self.source = app.FISHES[self.fish_current]['source']
+        self.hp_current = app.FISHES[self.fish_current]['hp']
+        self.opacity = 1
 
-        exit_btn = Button(text='Menu', font_size='20sp', size_hint=(1, 0.2))
-        exit_btn.bind(on_press=self.go_menu)
-        layout.add_widget(exit_btn)
+    def defeated(self):
+        self.opacity = 0
 
-        self.add_widget(layout)
-    
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos) or not self.opacity:
+            return
+
+        game_screen = app.root.get_screen('game')
+
+        self.hp_current -= 1
+        game_screen.score += 1
+
+        if self.hp_current <= 0:
+            self.defeated()
+            if len(app.LEVELS[app.LEVEL]) > self.fish_index + 1:
+                self.fish_index += 1
+                Clock.schedule_once(self.new_fish, 1.2)
+            else:
+                Clock.schedule_once(game_screen.level_complete, 1.2)
+                self.fish_index = 0
+
+        return super().on_touch_down(touch)
+
+
+class GameScreen(Screen):
+    score = NumericProperty(0)
+
+    def on_pre_enter(self, *args):
+        self.score = 0
+        app.LEVEL = 0
+        self.ids.level_complete.opacity = 0
+        self.ids.fish.fish_index = 0
+        return super().on_pre_enter(*args)
+
+    def on_enter(self, *args):
+        self.start_game()
+        return super().on_enter(*args)
+
+    def start_game(self):
+        self.ids.fish.new_fish()
+
+    def level_complete(self, *args):
+        self.ids.level_complete.opacity = 1
+
     def go_menu(self, *args):
         self.manager.current = 'menu'
 
 class ClickerApp(App):
+
+    LEVEL = 0
+
+    FISHES = {
+        'fish1': {'source': 'assets/images/fish_01.png', 'hp': 10},
+        'fish2': {'source': 'assets/images/fish_02.png', 'hp': 20},
+    }
+    
+    LEVELS = [
+        ['fish1', 'fish1', 'fish2']
+    ]
+
     def build(self):
         sm = ScreenManager()
         sm.add_widget(MenuScreen(name='menu'))
         sm.add_widget(GameScreen(name='game'))
         sm.add_widget(SettingsScreen(name='settings'))
         return sm
-    
+
+
+if platform != 'android':
+    Window.size = (350, 650)
+
 app = ClickerApp()
 app.run()
