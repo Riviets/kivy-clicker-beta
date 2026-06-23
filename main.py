@@ -7,6 +7,9 @@ from kivy import platform
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
 
+from kivy.animation import Animation
+
+Window.clearcolor = (0, 0.2, 0.9, 1)
 
 class MenuScreen(Screen):
 
@@ -25,17 +28,39 @@ class SettingsScreen(Screen):
     def go_menu(self, *args):
         self.manager.current = 'menu'
 
+class RotatedImage(Image):
+    ...
 
-class Fish(Image):
+class Fish(RotatedImage):
+
+    angle = NumericProperty(0)
+    anim_play = False
+    COEF_MULT = 1.5
+    interaction_block = True
+
     fish_current = None
     fish_index = 0
     hp_current = None
+
+    def swim(self):
+        game_screen = app.root.get_screen('game')
+        self.pos = (game_screen.x - self.width, 
+                    game_screen.height / 2)
+        self.opacity = 1
+        swim = Animation(x = game_screen.width / 2 - self.width /2, 
+                         duration = 1)
+        swim.start(self)
+        swim.bind(on_complete=lambda w, a: 
+                  setattr(self, 'interaction_block', False))
+        
+        
 
     def new_fish(self, *args):
         self.fish_current = app.LEVELS[app.LEVEL][self.fish_index]
         self.source = app.FISHES[self.fish_current]['source']
         self.hp_current = app.FISHES[self.fish_current]['hp']
         self.opacity = 1
+        self.swim()
 
     def defeated(self):
         self.opacity = 0
@@ -108,5 +133,5 @@ class ClickerApp(App):
 if platform != 'android':
     Window.size = (350, 650)
 
-app = ClickerApp()
+app = ClickerBetaApp()
 app.run()
