@@ -34,6 +34,16 @@
             text: 'Exit'
             on_press: root.exit()
 
+<RotatedImage>:
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: self.angle
+            axis: 0, 0, 1
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
 <GameScreen>:
     BoxLayout:
         orientation: 'vertical'
