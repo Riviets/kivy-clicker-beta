@@ -9,7 +9,7 @@ from kivy.clock import Clock
 
 from kivy.animation import Animation
 
-Window.clearcolor = (0, 0.2, 0.9, 1)
+Window.clearcolor = (0, 0.2, 1, 1)
 
 class MenuScreen(Screen):
 
@@ -32,49 +32,65 @@ class RotatedImage(Image):
     ...
 
 class Fish(RotatedImage):
-
-    angle = NumericProperty(0)
     anim_play = False
-    COEF_MULT = 1.5
     interaction_block = True
+    COEF_MULT = 1.5
+    angle = NumericProperty(0)
 
     fish_current = None
     fish_index = 0
     hp_current = None
 
-    def swim(self):
-        game_screen = app.root.get_screen('game')
-        self.pos = (game_screen.x - self.width, 
-                    game_screen.height / 2)
-        self.opacity = 1
-        swim = Animation(x = game_screen.width / 2 - self.width /2, 
-                         duration = 1)
-        swim.start(self)
-        swim.bind(on_complete=lambda w, a: 
-                  setattr(self, 'interaction_block', False))
-        
-        
 
     def new_fish(self, *args):
         self.fish_current = app.LEVELS[app.LEVEL][self.fish_index]
         self.source = app.FISHES[self.fish_current]['source']
         self.hp_current = app.FISHES[self.fish_current]['hp']
-        self.opacity = 1
         self.swim()
 
+    def swim(self):
+        game_screen = app.root.get_screen('game')
+        self.pos = (game_screen.x - self.width, game_screen.height / 2)
+        self.opacity = 1
+        swim = Animation(x=game_screen.width / 2 - self.width / 2, duration=1)
+        swim.start(self)
+        swim.bind(on_complete=lambda w, a: setattr(self, 'interaction_block', False))
+
     def defeated(self):
-        self.opacity = 0
+        self.interaction_block = True
+        anim = Animation(angle=self.angle + 360, d=1, t='in_cubic')
+
+        old_size = self.size.copy()
+        old_pos = self.pos.copy()
+        new_size = (self.size[0] * self.COEF_MULT * 3, self.size[1] * self.COEF_MULT * 3)
+        new_pos = (self.pos[0] - (new_size[0] - self.size[0]) / 2, self.pos[1] - (new_size[0] - self.size[1]) / 2)
+
+        anim &= Animation(size=new_size, t='in_out_bounce') + Animation(size=old_size, duration=0)
+        anim &= Animation(pos=new_pos, t='in_out_bounce') + Animation(pos=old_pos, duration=0)
+        anim &= Animation(opacity=0)
+        anim.start(self)
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos) or not self.opacity:
+        if not self.collide_point(*touch.pos) or self.anim_play or self.interaction_block:
             return
 
         game_screen = app.root.get_screen('game')
-
         self.hp_current -= 1
         game_screen.score += 1
 
-        if self.hp_current <= 0:
+        if self.hp_current > 0:
+            old_size = self.size.copy()
+            old_pos = self.pos.copy()
+            new_size = (self.size[0] * self.COEF_MULT, self.size[1] * self.COEF_MULT)
+            new_pos = (self.pos[0] - (new_size[0] - self.size[0]) / 2, self.pos[1] - (new_size[0] - self.size[1]) / 2)
+
+            zoom_anim = Animation(size=new_size, duration=0.05) + Animation(size=old_size, duration=0.05)
+            zoom_anim &= Animation(pos=new_pos, duration=0.05) + Animation(pos=old_pos, duration=0.05)
+            zoom_anim.start(self)
+
+            self.anim_play = True
+            zoom_anim.bind(on_complete=lambda *args: setattr(self, 'anim_play', False))
+        else:
             self.defeated()
             if len(app.LEVELS[app.LEVEL]) > self.fish_index + 1:
                 self.fish_index += 1
@@ -133,5 +149,5 @@ class ClickerApp(App):
 if platform != 'android':
     Window.size = (350, 650)
 
-app = ClickerBetaApp()
+app = ClickerApp()
 app.run()
