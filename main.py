@@ -133,5 +133,5 @@ class ClickerApp(App):
 if platform != 'android':
     Window.size = (350, 650)
 
-app = ClickerBetaApp()
+app = ClickerApp()
 app.run()
