@@ -1,11 +1,32 @@
 #:import colormap kivy.utils.colormap
+#:import from_hex kivy.utils.get_color_from_hex
 
 #:set main_color '#F3AF12'
+#:set main_color_dark '#c9890e'
 
 <ButtonMenu@Button>:
     font_size: '20sp'
-    size_hint: 1, 0.2
-    background_color: main_color
+    bold: True
+    background_color: 0, 0, 0, 0
+    size_hint: 1, None
+    height: '60dp'
+    canvas.before:
+        Color:
+            rgba: colormap['white']
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [dp(30)]
+        Color:
+            rgba: from_hex(main_color) if self.state == 'normal' else from_hex(main_color_dark)
+        RoundedRectangle:
+            size: self.size[0] - dp(6), self.size[1] - dp(6)
+            pos: self.pos[0] + dp(3), self.pos[1] + dp(3)
+            radius: [dp(30)]
+
+<ButtonIcon@ButtonMenu>:
+    font_name: 'assets/typicons.ttf'
+    
 
 <MenuScreen>:
     BoxLayout:
@@ -32,7 +53,7 @@
 
         ButtonMenu:
             text: 'Exit'
-            on_press: root.exit()
+            on_press: rott.exit()
 
 <RotatedImage>:
     canvas.before:
@@ -55,21 +76,28 @@
             font_size: '30sp'
             size_hint: 1, 0.2
 
-        Fish:
-            id: fish
-            size_hint: None, None
-            size: 200, 200
-            center: root.center
+        FloatLayout:
 
-        Label:
-            id: level_complete
-            text: 'Level Complete!'
-            font_size: '30sp'
-            size_hint: 1, 0.2
-            opacity: 0
+            size_hint_y: 0.7
 
-        ButtonMenu:
-            text: 'Menu'
+            Fish:
+                id: fish
+                size_hint: None, None
+                size: 200, 200
+                allow_stretch: True
+                center: root.center
+
+            Label:
+                id: level_complete
+                text: 'Level Complete!'
+                font_size: '30sp'
+                size_hint: None, None
+                size: self.texture_size
+                center: self.parent.center
+                opacity: 0
+
+        ButtonIcon:
+            text: '\uE08A'
             on_press: root.go_menu()
 
 <SettingsScreen>:
